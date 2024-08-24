@@ -21,7 +21,7 @@ pygame.display.set_caption('Asteroids')
 #load images
 bg=pygame.image.load(os.path.join('images','bg.jpg'))
 debris=pygame.image.load(os.path.join('images','debris2_brown.png'))
-
+ship=pygame.image.load(os.path.join('images','ship.png'))
 # draw game function
 def draw(canvas):
     global time
@@ -33,8 +33,12 @@ def draw(canvas):
     canvas.blit(debris, (time * 0.3 - WIDTH, 0))  
     
     time += 1  # Increment time
+    canvas.blit(ship, (WIDTH/2-50,HEIGHT/2-50))
 
-
+#(0,0) is the top left corner of the screen
+#(WIDTH,0) is the top right corner of the screen
+#(0,HEIGHT) is the bottom left corner of the screen
+#(WIDTH,HEIGHT) is the bottom right corner of the screen
 #handle input function
 def handle_input():
     global time
