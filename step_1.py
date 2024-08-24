@@ -32,6 +32,7 @@ bg=pygame.image.load(os.path.join('images','bg.jpg'))
 debris=pygame.image.load(os.path.join('images','debris2_brown.png'))
 ship=pygame.image.load(os.path.join('images','ship.png'))
 ship_thrusted=pygame.image.load(os.path.join('images','ship_thrusted.png'))
+asteroid=pygame.image.load(os.path.join('images','asteroid.png'))
 # draw game function
 ship_x = WIDTH/2-50
 ship_y = HEIGHT/2-50
@@ -40,6 +41,12 @@ ship_is_rotating = False
 ship_direction = 0
 ship_speed = 10
 ship_is_foward = False
+no_asteroids = 5
+asteroid_x = [] #random.randint(0, WIDTH)
+asteroid_y = [] #random.randint(0, HEIGHT)
+for i in range(0, no_asteroids):
+    asteroid_x.append(random.randint(0, WIDTH))
+    asteroid_y.append(random.randint(0, HEIGHT))
 def draw(canvas):
     global time
     global ship_is_foward
@@ -49,8 +56,10 @@ def draw(canvas):
     # Draw the debris image at the correct positions
     canvas.blit(debris, (time * 0.3, 0))  
     canvas.blit(debris, (time * 0.3 - WIDTH, 0))  
-    
+   
     time += 1  # Increment time
+    for i in range(0, no_asteroids):
+        canvas.blit(rotate_center(asteroid,time), (asteroid_x[i], asteroid_y[i]))
     if ship_is_foward:  # If the ship is moving forward
         canvas.blit(rotate_center(ship_thrusted, ship_angle), (ship_x,ship_y))
     else:
