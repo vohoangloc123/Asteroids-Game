@@ -42,11 +42,15 @@ ship_direction = 0
 ship_speed = 10
 ship_is_foward = False
 no_asteroids = 5
+asteroid_angle = []
+asteroid_speed = 2
 asteroid_x = [] #random.randint(0, WIDTH)
 asteroid_y = [] #random.randint(0, HEIGHT)
+
 for i in range(0, no_asteroids):
     asteroid_x.append(random.randint(0, WIDTH))
     asteroid_y.append(random.randint(0, HEIGHT))
+    asteroid_angle.append(random.randint(0, 360))
 def draw(canvas):
     global time
     global ship_is_foward
@@ -113,8 +117,12 @@ def update_screen():
     pygame.display.update()
     fpsClock.tick(30)
 
-
+def game_logic():
+    for i in range(0, no_asteroids):
+        asteroid_x[i]=(asteroid_x[i]+math.cos(math.radians(asteroid_angle[i]))*asteroid_speed)
+        asteroid_y[i]=(asteroid_y[i]+-math.sin(math.radians(asteroid_angle[i]))*asteroid_speed)   
 while True:
     draw(window)
     handle_input()
     update_screen()
+    game_logic()
