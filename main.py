@@ -116,6 +116,12 @@ def update_screen():
     time+=1
     pygame.display.update()
     fpsClock.tick(30)
+def isCollision(enemyX, enemyY,bulletX, bulletY):
+    distance = math.sqrt(math.pow(enemyX-bulletX,2) + (math.pow(enemyY-bulletY,2)))
+    if distance<17:
+        return True
+    else:
+        return False
 
 def game_logic():
     for i in range(0, no_asteroids):
@@ -129,6 +135,10 @@ def game_logic():
             asteroid_x[i]=WIDTH #reset the position of the asteroid
         if asteroid_x[i]>WIDTH:
             asteroid_x[i]=0 #reset the position of the asteroid
+        if isCollision(asteroid_x[i], asteroid_y[i], ship_x, ship_y):
+            print("Game Over")
+            exit()
+          
 while True:
     draw(window)
     handle_input()
