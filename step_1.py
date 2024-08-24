@@ -31,6 +31,7 @@ def rotate_center(image, angle):
 bg=pygame.image.load(os.path.join('images','bg.jpg'))
 debris=pygame.image.load(os.path.join('images','debris2_brown.png'))
 ship=pygame.image.load(os.path.join('images','ship.png'))
+ship_thrusted=pygame.image.load(os.path.join('images','ship_thrusted.png'))
 # draw game function
 ship_x = WIDTH/2-50
 ship_y = HEIGHT/2-50
@@ -41,6 +42,7 @@ ship_speed = 10
 ship_is_foward = False
 def draw(canvas):
     global time
+    global ship_is_foward
     canvas.fill(BLACK)  # fill the canvas with black
     canvas.blit(bg, (0, 0))  # draw the background image
     
@@ -49,7 +51,10 @@ def draw(canvas):
     canvas.blit(debris, (time * 0.3 - WIDTH, 0))  
     
     time += 1  # Increment time
-    canvas.blit(rotate_center(ship, ship_angle), (ship_x,ship_y))
+    if ship_is_foward:  # If the ship is moving forward
+        canvas.blit(rotate_center(ship_thrusted, ship_angle), (ship_x,ship_y))
+    else:
+        canvas.blit(rotate_center(ship, ship_angle), (ship_x,ship_y))
 
 #(0,0) is the top left corner of the screen
 #(WIDTH,0) is the top right corner of the screen
@@ -74,9 +79,11 @@ def handle_input():
                 ship_direction = 1  # Đặt hướng xoay về bên trái
             elif event.key == K_UP:  # Nếu phím lên được nhấn
                 ship_is_foward = True  # Đặt cờ cho biết tàu đang di chuyển về phía trước
+                ship_speed = 10  # Đặt tốc độ di chuyển của tàu
         elif event.type == KEYUP:  # Kiểm tra xem phím có được nhả ra không
-                if event.key == K_UP:
+                if event.key == K_RIGHT or event.key == K_LEFT:
                     ship_is_rotating = False  # Dừng việc xoay tàu
+                else:
                     ship_is_foward = False
     # Cập nhật góc tàu khi đang xoay
     if ship_is_rotating:
@@ -86,10 +93,11 @@ def handle_input():
             ship_angle = ship_angle + 10  # Tăng góc của tàu (xoay theo chiều kim đồng hồ)
 
     # Cập nhật vị trí tàu khi di chuyển
-    if ship_is_foward:
+    if ship_is_foward or ship_speed>0:
         ship_x = (ship_x + math.cos(math.radians(ship_angle))*ship_speed )
         ship_y = (ship_y + -math.sin(math.radians(ship_angle))*ship_speed )
-
+        if ship_is_foward==False:
+            ship_speed-=0.1
 def update_screen():
     global time
     time+=1
