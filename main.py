@@ -13,6 +13,24 @@ BLACK=(0,0,0)
 WIDTH=800
 HEIGHT=600 
 time=0 
+# load sounds
+
+#Missile sound
+missile_sound = pygame.mixer.Sound(os.path.join('sounds','missile.ogg'))
+missile_sound.set_volume(1)
+
+#thrust sound
+thruster_sound = pygame.mixer.Sound(os.path.join('sounds','thrust.ogg'))
+thruster_sound.set_volume(1)
+
+#thrust sound
+explosion_sound = pygame.mixer.Sound(os.path.join('sounds','explosion.ogg'))
+explosion_sound.set_volume(1)
+
+#background score
+pygame.mixer.music.load(os.path.join('sounds','game.ogg'))
+pygame.mixer.music.set_volume(0.3)
+pygame.mixer.music.play()
 
 #canvas declaration
 window=pygame.display.set_mode((WIDTH,HEIGHT), 0, 32)
@@ -34,7 +52,7 @@ ship=pygame.image.load(os.path.join('images','ship.png'))
 ship_thrusted=pygame.image.load(os.path.join('images','ship_thrusted.png'))
 asteroid=pygame.image.load(os.path.join('images','asteroid.png'))
 shot=pygame.image.load(os.path.join('images','shot2.png'))
-# draw game function
+
 ship_x = WIDTH/2-50
 ship_y = HEIGHT/2-50
 ship_angle = 0
@@ -42,27 +60,35 @@ ship_is_rotating = False
 ship_direction = 0
 ship_speed = 10
 ship_is_foward = False
-no_asteroids = 5
 
 asteroid_angle = []
 asteroid_speed = 2
 asteroid_x = [] #random.randint(0, WIDTH)
 asteroid_y = [] #random.randint(0, HEIGHT)
+no_asteroids = 5
 
-bullet_x = 0
-bullet_y = 0
-bullet_angle = 0
+bullet_x = []
+bullet_y = []
+bullet_angle = []
+no_bullets = 0
+
+score = 0
+game_over = False
+
 for i in range(0, no_asteroids):
     asteroid_x.append(random.randint(0, WIDTH))
     asteroid_y.append(random.randint(0, HEIGHT))
     asteroid_angle.append(random.randint(0, 360))
+
+# draw game function
 def draw(canvas):
     global time
     global ship_is_foward
     global bullet_x, bullet_y, bullet_angle
     canvas.fill(BLACK)  # fill the canvas with black
     canvas.blit(bg, (0, 0))  # draw the background image
-    canvas.blit(shot, (bullet_x, bullet_y))  # draw the bullet image
+    for i in range(0, no_bullets):
+        canvas.blit(shot, (bullet_x[i], bullet_y[i]))  # draw the bullet image
     # Draw the debris image at the correct positions
     canvas.blit(debris, (time * 0.3, 0))  
     canvas.blit(debris, (time * 0.3 - WIDTH, 0))  
@@ -75,6 +101,19 @@ def draw(canvas):
     else:
         canvas.blit(rotate_center(ship, ship_angle), (ship_x,ship_y))
 
+    for i in range(0, no_bullets):
+        canvas.blit(shot, (bullet_x[i], bullet_y[i]))
+
+     #draw Score
+    myfont1 = pygame.font.SysFont("Comic Sans MS", 40)
+    label1 = myfont1.render("Score : "+str(score), 1, (255,255,0))
+    canvas.blit(label1, (50,20))
+
+    if game_over:
+        myfont2 = pygame.font.SysFont("Comic Sans MS", 80)
+        label2 = myfont2.render("GAME OVER ", 1, (255,255,255))
+        canvas.blit(label2, (WIDTH/2 -200,HEIGHT/2 - 40))
+
 #(0,0) is the top left corner of the screen
 #(WIDTH,0) is the top right corner of the screen
 #(0,HEIGHT) is the bottom left corner of the screen
@@ -83,8 +122,8 @@ def draw(canvas):
 def handle_input():
     global ship_angle, ship_is_rotating, ship_direction, ship_speed
     global ship_is_foward, ship_x, ship_y
-    global bullet_x, bullet_y, bullet_angle  
-
+    global bullet_x, bullet_y, bullet_angle, no_bullets
+    global thruster_sound, missile_sound
     for event in pygame.event.get():  # Lặp qua tất cả các sự kiện trong hàng đợi sự kiện của Pygame
         if event.type == pygame.QUIT:  # Kiểm tra xem sự kiện có phải là yêu cầu thoát chương trình không
             pygame.quit()  # Thoát khỏi Pygame
@@ -100,11 +139,13 @@ def handle_input():
             elif event.key == K_UP:  # Nếu phím lên được nhấn
                 ship_is_foward = True  # Đặt cờ cho biết tàu đang di chuyển về phía trước
                 ship_speed = 10  # Đặt tốc độ di chuyển của tàu
+                thruster_sound.play()  # Phát âm thanh của động cơ tàu
             elif event.key == K_SPACE:  # Nếu phím Space được nhấn
-                bullet_x = ship_x+50  # Đặt vị trí ban đầu của đạn bằng vị trí của tàu
-                bullet_y = ship_y+50  # Đặt vị trí ban đầu của đạn bằng vị trí của tàu
-                bullet_angle = ship_angle  # Đặt góc ban đầu của đạn bằng góc của tàu
-                print(f"Bullet x: {bullet_x}, Bullet y: {bullet_y}, Bullet angle: {bullet_angle}")
+                bullet_x.append(ship_x+50)  # Đặt vị trí ban đầu của đạn bằng vị trí của tàu
+                bullet_y.append(ship_y+50)  # Đặt vị trí ban đầu của đạn bằng vị trí của tàu
+                bullet_angle.append(ship_angle)  # Đặt góc ban đầu của đạn bằng góc của tàu
+                no_bullets += 1  # Tăng số lượng đạn lên 1
+                missile_sound.play()  # Phát âm thanh của đạn
         elif event.type == KEYUP:  # Kiểm tra xem phím có được nhả ra không
                 if event.key == K_RIGHT or event.key == K_LEFT:
                     ship_is_rotating = False  # Dừng việc xoay tàu
@@ -130,17 +171,20 @@ def update_screen():
     time+=1
     pygame.display.update()
     fpsClock.tick(30)
-def isCollision(enemyX, enemyY,bulletX, bulletY):
+def isCollision(enemyX, enemyY,bulletX, bulletY, dist):
     distance = math.sqrt(math.pow(enemyX-bulletX,2) + (math.pow(enemyY-bulletY,2)))
-    if distance<17:
+    if distance<dist:
         return True
     else:
         return False
 
 def game_logic():
-    global bullet_x, bullet_y, bullet_angle 
-    bullet_x = (bullet_x + math.cos(math.radians(bullet_angle))*ship_speed )
-    bullet_y = (bullet_y + -math.sin(math.radians(bullet_angle))*ship_speed )
+    global bullet_x, bullet_y, bullet_angle, no_bullets
+    global score
+    global game_over
+    for i in range(0, no_bullets):
+        bullet_x[i] = (bullet_x[i] + math.cos(math.radians(bullet_angle[i]))*10)
+        bullet_y[i] = (bullet_y[i] + -math.sin(math.radians(bullet_angle[i]))*10 )
     for i in range(0, no_asteroids):
         asteroid_x[i]=(asteroid_x[i]+math.cos(math.radians(asteroid_angle[i]))*asteroid_speed)
         asteroid_y[i]=(asteroid_y[i]+-math.sin(math.radians(asteroid_angle[i]))*asteroid_speed)   
@@ -152,12 +196,22 @@ def game_logic():
             asteroid_x[i]=WIDTH #reset the position of the asteroid
         if asteroid_x[i]>WIDTH:
             asteroid_x[i]=0 #reset the position of the asteroid
-        if isCollision(asteroid_x[i], asteroid_y[i], ship_x, ship_y):
-            print("Game Over")
-            exit()
+        if isCollision(asteroid_x[i], asteroid_y[i], ship_x, ship_y, 27):
+            explosion_sound.play()
+            game_over = True
+            pygame.mixer.music.stop()
+        for i in range(0, no_bullets):
+            for j in range(0, no_asteroids):
+                if isCollision(asteroid_x[j], asteroid_y[j], bullet_x[i], bullet_y[i], 50):
+                    asteroid_x[j]=random.randint(0, WIDTH)
+                    asteroid_y[j]=random.randint(0, HEIGHT)
+                    asteroid_angle[j]=random.randint(0, 360)
+                    explosion_sound.play()
+                    score = score + 1
           
 while True:
     draw(window)
     handle_input()
+    if not game_over:
+        game_logic()
     update_screen()
-    game_logic()
