@@ -58,7 +58,7 @@ ship_y = HEIGHT/2-50
 ship_angle = 0
 ship_is_rotating = False
 ship_direction = 0
-ship_speed = 10
+ship_speed = 0
 ship_is_foward = False
 
 asteroid_angle = []
@@ -76,9 +76,17 @@ score = 0
 game_over = False
 
 for i in range(0, no_asteroids):
-    asteroid_x.append(random.randint(0, WIDTH))
-    asteroid_y.append(random.randint(0, HEIGHT))
-    asteroid_angle.append(random.randint(0, 360))
+    while True:
+        x = random.randint(0, WIDTH)
+        y = random.randint(0, HEIGHT)
+        # Calculate the distance between the asteroid and the ship
+        distance = math.sqrt((x - ship_x) ** 2 + (y - ship_y) ** 2)
+        # If the asteroid is far enough from the ship, accept the position
+        if distance > 100:  # You can adjust this distance as needed
+            asteroid_x.append(x)
+            asteroid_y.append(y)
+            asteroid_angle.append(random.randint(0, 360))
+            break
 
 # draw game function
 def draw(canvas):
@@ -95,7 +103,7 @@ def draw(canvas):
    
     time += 1  # Increment time
     for i in range(0, no_asteroids):
-        canvas.blit(rotate_center(asteroid,time), (asteroid_x[i], asteroid_y[i]))
+        canvas.blit(rotate_center(asteroid,time), (asteroid_x[i], asteroid_y[i])) # Draw the asteroid image
     if ship_is_foward:  # If the ship is moving forward
         canvas.blit(rotate_center(ship_thrusted, ship_angle), (ship_x,ship_y))
     else:
@@ -149,7 +157,7 @@ def handle_input():
         elif event.type == KEYUP:  # Kiểm tra xem phím có được nhả ra không
                 if event.key == K_RIGHT or event.key == K_LEFT:
                     ship_is_rotating = False  # Dừng việc xoay tàu
-                else:
+                elif event.key == K_UP:
                     ship_is_foward = False
     # Cập nhật góc tàu khi đang xoay
     if ship_is_rotating:
@@ -179,7 +187,7 @@ def isCollision(enemyX, enemyY,bulletX, bulletY, dist):
         return False
 
 def game_logic():
-    global bullet_x, bullet_y, bullet_angle, no_bullets
+    global bullet_x, bullet_y, bullet_angle, no_bullets, ship_speed
     global score
     global game_over
     for i in range(0, no_bullets):
@@ -197,6 +205,7 @@ def game_logic():
         if asteroid_x[i]>WIDTH:
             asteroid_x[i]=0 #reset the position of the asteroid
         if isCollision(asteroid_x[i], asteroid_y[i], ship_x, ship_y, 27):
+            ship_speed = 0
             explosion_sound.play()
             game_over = True
             pygame.mixer.music.stop()
