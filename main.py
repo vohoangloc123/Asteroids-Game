@@ -33,6 +33,7 @@ debris=pygame.image.load(os.path.join('images','debris2_brown.png'))
 ship=pygame.image.load(os.path.join('images','ship.png'))
 ship_thrusted=pygame.image.load(os.path.join('images','ship_thrusted.png'))
 asteroid=pygame.image.load(os.path.join('images','asteroid.png'))
+shot=pygame.image.load(os.path.join('images','shot2.png'))
 # draw game function
 ship_x = WIDTH/2-50
 ship_y = HEIGHT/2-50
@@ -42,11 +43,15 @@ ship_direction = 0
 ship_speed = 10
 ship_is_foward = False
 no_asteroids = 5
+
 asteroid_angle = []
 asteroid_speed = 2
 asteroid_x = [] #random.randint(0, WIDTH)
 asteroid_y = [] #random.randint(0, HEIGHT)
 
+bullet_x = 0
+bullet_y = 0
+bullet_angle = 0
 for i in range(0, no_asteroids):
     asteroid_x.append(random.randint(0, WIDTH))
     asteroid_y.append(random.randint(0, HEIGHT))
@@ -54,9 +59,10 @@ for i in range(0, no_asteroids):
 def draw(canvas):
     global time
     global ship_is_foward
+    global bullet_x, bullet_y, bullet_angle
     canvas.fill(BLACK)  # fill the canvas with black
     canvas.blit(bg, (0, 0))  # draw the background image
-    
+    canvas.blit(shot, (bullet_x, bullet_y))  # draw the bullet image
     # Draw the debris image at the correct positions
     canvas.blit(debris, (time * 0.3, 0))  
     canvas.blit(debris, (time * 0.3 - WIDTH, 0))  
@@ -77,6 +83,7 @@ def draw(canvas):
 def handle_input():
     global ship_angle, ship_is_rotating, ship_direction, ship_speed
     global ship_is_foward, ship_x, ship_y
+    global bullet_x, bullet_y, bullet_angle  
 
     for event in pygame.event.get():  # Lặp qua tất cả các sự kiện trong hàng đợi sự kiện của Pygame
         if event.type == pygame.QUIT:  # Kiểm tra xem sự kiện có phải là yêu cầu thoát chương trình không
@@ -93,6 +100,11 @@ def handle_input():
             elif event.key == K_UP:  # Nếu phím lên được nhấn
                 ship_is_foward = True  # Đặt cờ cho biết tàu đang di chuyển về phía trước
                 ship_speed = 10  # Đặt tốc độ di chuyển của tàu
+            elif event.key == K_SPACE:  # Nếu phím Space được nhấn
+                bullet_x = ship_x+50  # Đặt vị trí ban đầu của đạn bằng vị trí của tàu
+                bullet_y = ship_y+50  # Đặt vị trí ban đầu của đạn bằng vị trí của tàu
+                bullet_angle = ship_angle  # Đặt góc ban đầu của đạn bằng góc của tàu
+                print(f"Bullet x: {bullet_x}, Bullet y: {bullet_y}, Bullet angle: {bullet_angle}")
         elif event.type == KEYUP:  # Kiểm tra xem phím có được nhả ra không
                 if event.key == K_RIGHT or event.key == K_LEFT:
                     ship_is_rotating = False  # Dừng việc xoay tàu
@@ -111,6 +123,8 @@ def handle_input():
         ship_y = (ship_y + -math.sin(math.radians(ship_angle))*ship_speed )
         if ship_is_foward==False:
             ship_speed-=0.1
+
+    
 def update_screen():
     global time
     time+=1
@@ -124,6 +138,9 @@ def isCollision(enemyX, enemyY,bulletX, bulletY):
         return False
 
 def game_logic():
+    global bullet_x, bullet_y, bullet_angle 
+    bullet_x = (bullet_x + math.cos(math.radians(bullet_angle))*ship_speed )
+    bullet_y = (bullet_y + -math.sin(math.radians(bullet_angle))*ship_speed )
     for i in range(0, no_asteroids):
         asteroid_x[i]=(asteroid_x[i]+math.cos(math.radians(asteroid_angle[i]))*asteroid_speed)
         asteroid_y[i]=(asteroid_y[i]+-math.sin(math.radians(asteroid_angle[i]))*asteroid_speed)   
