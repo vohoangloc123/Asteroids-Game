@@ -18,11 +18,22 @@ time=0
 window=pygame.display.set_mode((WIDTH,HEIGHT), 0, 32)
 pygame.display.set_caption('Asteroids') 
 
+#rotate function
+def rotate_center(image, angle):
+    orig_rect = image.get_rect()
+    rot_image = pygame.transform.rotate(image, angle)
+    rot_rect = orig_rect.copy()
+    rot_rect.center = rot_image.get_rect().center
+    rot_image = rot_image.subsurface(rot_rect).copy()
+    return rot_image
+
 #load images
 bg=pygame.image.load(os.path.join('images','bg.jpg'))
 debris=pygame.image.load(os.path.join('images','debris2_brown.png'))
 ship=pygame.image.load(os.path.join('images','ship.png'))
 # draw game function
+ship_x = WIDTH/2-50
+ship_y = HEIGHT/2-50
 def draw(canvas):
     global time
     canvas.fill(BLACK)  # fill the canvas with black
@@ -33,7 +44,7 @@ def draw(canvas):
     canvas.blit(debris, (time * 0.3 - WIDTH, 0))  
     
     time += 1  # Increment time
-    canvas.blit(ship, (WIDTH/2-50,HEIGHT/2-50))
+    canvas.blit(rotate_center(ship, 0), (ship_x,ship_y))
 
 #(0,0) is the top left corner of the screen
 #(WIDTH,0) is the top right corner of the screen
